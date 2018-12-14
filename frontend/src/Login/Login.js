@@ -36,6 +36,10 @@ class Login extends Component {
       return;
     }
     const publicAddress = web3.eth.coinbase.toLowerCase();
+
+    //   balanceWei = balanceWei.toNumber();
+
+
     this.setState({ loading: true });
 
     // Look if user with current publicAddress is already present on backend

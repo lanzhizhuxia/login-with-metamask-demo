@@ -3,6 +3,7 @@ import Blockies from 'react-blockies';
 import jwtDecode from 'jwt-decode';
 
 import './Profile.css';
+import Web3 from "web3";
 
 class Profile extends Component {
   state = {
@@ -53,6 +54,48 @@ class Profile extends Component {
     const { payload: { publicAddress } } = jwtDecode(accessToken);
     const { loading, user } = this.state;
 
+    let web3 = null;
+    if (!web3) {
+        // We don't know window.web3 version, so we use our own instance of web3
+        // with provider given by window.web3
+        web3 = new Web3(window.web3.currentProvider);
+    }
+    if (!web3.eth.coinbase) {
+        window.alert('Please activate MetaMask first.');
+        return;
+    }
+
+    var balanceWei=0;
+    web3.eth.getBalance(publicAddress, function(error, result){
+        if(!error) {
+            console.log(JSON.stringify(result));
+            balanceWei = JSON.stringify(result);
+        }else
+            console.error(error);
+    });
+
+      var txnObject = {
+          "from": publicAddress,
+          "to": "0xD331a2fE3cA127dB93e9818951159e83f29eD0b4",
+          "value": web3.toWei(0.1, 'ether'),
+          // "gas": 21000,          // (optional)
+          // "gasPrice": 4500000,   // (optional)
+          // "data": 'For testing', // (optional)
+          // "nonce": 10            // (optional)
+      };
+      web3.eth.sendTransaction(txnObject, function(error, result){
+          if(error) {
+              // error handle
+              console.error(error);
+          } else {
+              console.log(JSON.stringify(result));
+              var txn_hash = result; //Get transaction hash
+          }
+
+      });
+
+
+
     const username = user && user.username;
 
     return (
@@ -71,6 +114,10 @@ class Profile extends Component {
             Submit
           </button>
         </div>
+            <div>
+            My username is {username ? <pre>{username}</pre> : 'not set.'} My
+              Balance is <pre>{balanceWei}</pre>
+              </div>
         <p>
           <button onClick={onLoggedOut}>Logout</button>
         </p>
